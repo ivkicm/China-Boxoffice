@@ -22,88 +22,205 @@ def clean_text(text):
     return " ".join(text.split())
 
 def get_data():
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    }
-    
+    headers = {'User-Agent': 'Mozilla/5.0'}
     session = get_session()
     movies = []
     page_date = datetime.now().strftime("%d.%m.%Y")
 
     print(f"Lade Daten von {URL}...")
-    
     try:
         response = session.get(URL, headers=headers, timeout=60)
         response.encoding = response.apparent_encoding
         soup = BeautifulSoup(response.content, 'html.parser')
         
+        # Datum Versuch
         try:
             date_input = soup.find('input', {'id': 'txtdate'})
             if date_input and date_input.get('value'):
                 raw_date = date_input.get('value').replace(' ', '')
                 dt = datetime.strptime(raw_date, '%m/%d/%Y')
                 page_date = dt.strftime("%d.%m.%Y")
-        except:
-            pass
+        except: pass
 
         table = soup.find('table', {'class': 'person'})
-        if not table:
-            print("Keine Tabelle gefunden.")
-            return [], page_date
+        if not table: return [], page_date
 
         rows = table.find_all('tr')
-        
         count = 0
         for row in rows:
             if count >= 5: break
-            
-            # WICHTIG: recursive=False für stabile Spaltenzuordnung
+            # WICHTIG: recursive=False
             cols = row.find_all('td', recursive=False)
-            
             if len(cols) < 8: continue
             
             rank_text = cols[0].text.strip()
             if not rank_text.isdigit(): continue 
             
-            # --- DATEN ---
             rank = rank_text
             
-            # Titel
             strong_tag = cols[1].find('strong')
-            if strong_tag:
-                title = clean_text(strong_tag.text)
-            else:
-                title = clean_text(cols[1].text)
+            title = clean_text(strong_tag.text) if strong_tag else clean_text(cols[1].text)
             
-            # Daily Gross - Jetzt mit HTML für kleines M
-            daily_raw = clean_text(cols[2].text)
-            daily = f"${daily_raw}<span class='small-unit'>M</span>"
-            
-            # Total Gross - Jetzt mit HTML für kleines M
-            total_raw = clean_text(cols[3].text)
-            total = f"${total_raw}<span class='small-unit'>M</span>"
-            
-            # Days (Spalte 8 / Index 8)
+            # Dollar Formatierung für Millionen mit HTML Span für CSS Styling
+            daily = f"${clean_text(cols[2].text)}<span class='small-unit'>M</span>"
+            total = f"${clean_text(cols[3].text)}<span class='small-unit'>M</span>"
             days = clean_text(cols[8].text)
 
-            movies.append({
-                'rank': rank,
-                'title': title,
-                'days': days,
-                'daily': daily,
-                'total': total
-            })
+            movies.append({'rank': rank, 'title': title, 'days': days, 'daily': daily, 'total': total})
             count += 1
             
         print(f"Erfolg: {len(movies)} Filme geladen.")
         return movies, page_date
-
     except Exception as e:
         print(f"Fehler: {e}")
         return [], page_date
 
 def generate_html(movies, date_str):
-    
+    # CSS Style: XL MODE (vh/vw) + China Farben
+    css_style = """
+        :root { 
+            --bg: #000000; 
+            --box-bg: #111; 
+            --border: #333;
+            --text-main: #ffffff;
+            --text-dim: #999;
+            --green: #00FF41; 
+            --blue: #00C2FF;  
+            --china-red: #d40028; /* China Rot */
+        }
+        * { box-sizing: border-box; }
+        
+        body { 
+            margin: 0; 
+            padding: 0.5vh 2vw; 
+            background-color: var(--bg); 
+            color: var(--text-main); 
+            font-family: 'Inter', sans-serif; 
+            height: 100vh; width: 100vw; 
+            overflow: hidden; 
+            display: flex; flex-direction: column; 
+            justify-content: flex-start; 
+        }
+
+        /* HEADER */
+        .header-container {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 0.5vh;
+            border-bottom: 1px solid #222;
+            padding-bottom: 0.5vh;
+            padding-top: 1vh;
+            flex: 0 0 auto;
+            display: flex; justify-content: center; align-items: center; gap: 1vw;
+        }
+
+        .flag-img { height: 5vh; width: auto; border-radius: 4px; }
+
+        h1 { 
+            font-family: 'JetBrains Mono', monospace; 
+            font-size: 5.5vh; 
+            font-weight: 800;
+            color: #ffffff; 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .list-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8vh; 
+            width: 100%; 
+            flex: 1 1 auto; 
+            justify-content: center;
+        }
+
+        .movie-row {
+            display: grid;
+            /* Layout angepasst für China ($ M braucht Platz) */
+            /* 3.5fr Title | 0.5fr Days | 2.5fr Daily | 3.5fr Total */
+            grid-template-columns: 3.5fr 0.5fr 2.5fr 3.5fr; 
+            gap: 0.8vw; 
+            height: 15.5vh; 
+            width: 100%;
+        }
+
+        .box {
+            background-color: var(--box-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex; flex-direction: column; justify-content: center;
+            padding: 0 1vw;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        /* 1. RANK & NAME */
+        .box-title {
+            display: flex; flex-direction: row; 
+            align-items: center; justify-content: flex-start;
+            border-left: 5px solid #fff;
+        }
+        /* China Rot für Platz 1 */
+        .rank-1 .box-title { border-left: 5px solid var(--china-red); background: linear-gradient(90deg, #1a0005, #111); }
+
+        .rank {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 5vh; font-weight: 900; color: #555;
+            margin-right: 1.5vw; min-width: 40px;
+        }
+        .rank-1 .rank { color: var(--china-red); text-shadow: 0 0 15px rgba(212,0,40,0.5); }
+        
+        .title {
+            font-size: 2.8vh; font-weight: 800; text-transform: uppercase;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1;
+        }
+
+        /* 2. TAGE */
+        .box-days { align-items: center; border-top: 2px solid #333; }
+        .days-val { 
+            font-family: 'JetBrains Mono'; 
+            font-size: 5vh; 
+            font-weight: 900; color: #ddd; line-height: 0.9;
+        }
+        .label-center { font-size: 1.6vh; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-top: 0.5vh;}
+
+        /* 3. DAILY (GRÜN) */
+        .box-daily {
+            align-items: flex-end; 
+            border-bottom: 5px solid var(--green); 
+            background: linear-gradient(180deg, var(--box-bg), #001a05);
+        }
+        .val-daily { 
+            font-family: 'JetBrains Mono'; 
+            font-size: 6.5vh; 
+            font-weight: 900; color: #fff; 
+            letter-spacing: -2px; 
+            line-height: 0.8; 
+            text-shadow: 0 0 20px rgba(0,255,65,0.4);
+        }
+        .lbl-daily { color: var(--green); font-size: 1.6vh; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5vh; }
+
+        /* 4. TOTAL (BLAU) */
+        .box-total {
+            align-items: flex-end; 
+            border-bottom: 5px solid var(--blue); 
+            background: linear-gradient(180deg, var(--box-bg), #00121a);
+        }
+        .val-total { 
+            font-family: 'JetBrains Mono'; 
+            font-size: 6.5vh; 
+            font-weight: 900; color: #ccc; 
+            letter-spacing: -2px; 
+            line-height: 0.8;
+        }
+        .lbl-total { color: var(--blue); font-size: 1.6vh; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5vh; }
+
+        /* Das kleine M für Millionen */
+        .small-unit { font-size: 0.6em; margin-left: 0.5vw; opacity: 0.8; font-weight:700;}
+    """
+
     html = f"""
 <!DOCTYPE html>
 <html lang="de">
@@ -111,126 +228,62 @@ def generate_html(movies, date_str):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>China Box Office</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;800;900&display=swap" rel="stylesheet">
-    <style>
-        body {{ background-color: #000000; color: #ffffff; font-family: 'JetBrains Mono', monospace; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }}
-        
-        .header {{ 
-            font-size: 2.5rem; font-weight: 900; text-transform: uppercase; 
-            margin-bottom: 30px; letter-spacing: 2px; text-align: center; 
-            border-bottom: 2px solid #333; padding-bottom: 10px; width: 100%; max-width: 1200px; 
-            display: flex; align-items: center; justify-content: center; gap: 20px;
-        }}
-        
-        .flag-img {{ height: 50px; width: auto; border-radius: 4px; }}
-        
-        .grid-wrapper {{ width: 100%; max-width: 1200px; display:flex; flex-direction:column; gap:15px; }}
-
-        .row-container {{ 
-            display: grid; 
-            /* HIER GEÄNDERT: 0.9fr und 1.1fr */
-            grid-template-columns: 80px 1.5fr 100px 0.9fr 1.1fr; 
-            gap: 15px; 
-            height: 100px; 
-        }}
-        
-        .box {{ 
-            border: 2px solid #fff; border-radius: 8px; 
-            display: flex; flex-direction: column; justify-content: center; 
-            padding: 0 15px; background: #0a0a0a; 
-            min-width: 0;
-        }}
-        
-        .rank-box {{ border-color: #d40028; align-items: center; }} 
-        .rank-val {{ color: #d40028; font-size: 3.5rem; font-weight: 900; line-height: 1; text-shadow: 0 0 15px rgba(212, 0, 40, 0.4); }}
-        
-        .title-box {{ border-color: #ffffff; justify-content: center; }}
-        .movie-title {{ 
-            font-size: 1.5rem; font-weight: 800; text-transform: uppercase; 
-            line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-            display: block; width: 100%;
-        }}
-        
-        .days-box {{ border-color: #666; align-items: center; }}
-        .days-val {{ font-size: 3.5rem; font-weight: 800; line-height: 1; }}
-        .days-label {{ font-size: 0.6rem; color: #888; text-transform: uppercase; margin-top: 5px; }}
-        
-        .daily-box {{ border-color: #39FF14; align-items: flex-end; }}
-        .label-green {{ color: #39FF14; font-size: 0.7rem; font-weight: 800; margin-bottom: 2px; }}
-        .val-big {{ font-size: 2.8rem; font-weight: 800; line-height: 1; }}
-        
-        .total-box {{ border-color: #00F0FF; align-items: flex-end; }}
-        .label-blue {{ color: #00F0FF; font-size: 0.7rem; font-weight: 800; margin-bottom: 2px; }}
-        
-        /* Das kleine M */
-        .small-unit {{
-            font-size: 0.6em; /* Macht das M kleiner (60% der Zahlengröße) */
-            margin-left: 2px;
-            font-weight: 700;
-            opacity: 0.9;
-        }}
-        
-        @media (max-width: 800px) {{
-            .row-container {{ grid-template-columns: 60px 1fr; height: auto; padding-bottom: 20px; border-bottom:1px solid #333; }}
-            .rank-box {{ grid-row: 1 / 3; height: 100%; }}
-            .title-box {{ height: 60px; }}
-            .days-box, .daily-box, .total-box {{ height: 70px; }}
-        }}
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800;900&family=Inter:wght@800;900&display=swap" rel="stylesheet">
+    <style>{css_style}</style>
 </head>
 <body>
-    <div class="header">
+    <div class="header-container">
         <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Flag_of_the_People%27s_Republic_of_China.svg" class="flag-img" alt="China">
-        <span>CHINA KINOCHARTS | {date_str}</span>
+        <h1>
+            <span>CHINA</span>
+            <span style="color:#444; margin:0 20px;">|</span>
+            <span>{date_str}</span>
+        </h1>
     </div>
     
-    <div class="grid-wrapper">
+    <div class="list-wrapper">
     """
 
     if not movies:
-        html += """
-        <div style="border:1px solid red; padding:20px; text-align:center;">
-            <h2 style="color:red">KEINE DATEN</h2>
-            <p>Konnte Daten nicht laden.</p>
-        </div>
-        """
+        html += "<h2 style='text-align:center; color:red; margin-top:20vh;'>KEINE DATEN VERFÜGBAR</h2>"
     else:
         for m in movies:
+            rank = int(m['rank'])
+            row_class = "rank-1" if rank == 1 else ""
+            
             html += f"""
-            <div class="row-container">
-                <div class="box rank-box"><div class="rank-val">{m['rank']}</div></div>
-                
-                <div class="box title-box" title="{m['title']}">
-                    <div class="movie-title">{m['title']}</div>
+            <div class="movie-row {row_class}">
+                <div class="box box-title">
+                    <div class="rank">{rank}</div>
+                    <div class="title">{m['title']}</div>
                 </div>
-                
-                <div class="box days-box"><div class="days-val">{m['days']}</div><div class="days-label">TAGE</div></div>
-                
-                <div class="box daily-box">
-                    <div class="label-green">UMSATZ HEUTE</div>
-                    <div class="val-big">{m['daily']}</div>
+
+                <div class="box box-days">
+                    <div class="days-val">{m['days']}</div>
+                    <div class="label-center">Tage</div>
                 </div>
-                
-                <div class="box total-box">
-                    <div class="label-blue">GESAMT</div>
-                    <div class="val-big">{m['total']}</div>
+
+                <div class="box box-daily">
+                    <div class="lbl-daily">Umsatz Heute</div>
+                    <div class="val-daily">{m['daily']}</div>
+                </div>
+
+                <div class="box box-total">
+                    <div class="lbl-total">Gesamt</div>
+                    <div class="val-total">{m['total']}</div>
                 </div>
             </div>
             """
 
     html += """
     </div>
-    <div style="margin-top:20px; font-size:0.7rem; color:#444; text-align:center;">Quelle: EntGroup China</div>
 </body>
 </html>
     """
     
-    try:
-        with open("index.html", "w", encoding="utf-8") as f:
-            f.write(html)
-        print("index.html geschrieben.")
-    except Exception as e:
-        print(f"Fehler beim Schreiben: {e}")
+    with open("index.html", "w", encoding="utf-8") as f:
+        f.write(html)
+    print("index.html (Vollbild) geschrieben.")
 
 if __name__ == "__main__":
     data, date_val = get_data()
