@@ -9,9 +9,7 @@ import re
 URL = "http://english.entgroup.cn/boxoffice/cn/daily/"
 
 def get_session():
-    """Erstellt eine robuste Browser-Session."""
     session = requests.Session()
-    # China-Verbindungen können wackelig sein
     retry = Retry(connect=5, read=5, backoff_factor=1)
     adapter = HTTPAdapter(max_retries=retry)
     session.mount('http://', adapter)
@@ -19,88 +17,87 @@ def get_session():
     return session
 
 def clean_text(text):
-    """Entfernt Zeilenumbrüche, Dollarzeichen und doppelte Leerzeichen."""
     if not text: return ""
+    # Entferne Dollarzeichen und überflüssigen Whitespace
     text = text.replace('$', '').replace('\n', ' ').replace('\r', ' ')
     return " ".join(text.split())
 
 def get_data():
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
     }
     
     session = get_session()
     movies = []
-    
-    # Standard-Datum (Heute), falls wir es nicht von der Seite lesen können
     page_date = datetime.now().strftime("%d.%m.%Y")
 
     print(f"Lade Daten von {URL}...")
     
     try:
         response = session.get(URL, headers=headers, timeout=60)
-        response.encoding = response.apparent_encoding # Encoding fixen
-        
+        response.encoding = response.apparent_encoding
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        # 1. Datum auslesen (Input Feld)
+        # Datum auslesen
         try:
             date_input = soup.find('input', {'id': 'txtdate'})
             if date_input and date_input.get('value'):
-                # Format: "12 /15 /2025" -> bereinigen zu "12/15/2025"
                 raw_date = date_input.get('value').replace(' ', '')
                 dt = datetime.strptime(raw_date, '%m/%d/%Y')
                 page_date = dt.strftime("%d.%m.%Y")
         except:
             pass
 
-        # 2. Tabelle parsen
-        # Wir suchen die Tabelle mit class="person" (aus deinem Quelltext)
+        # Tabelle suchen
         table = soup.find('table', {'class': 'person'})
         if not table:
-            print("Keine Tabelle 'person' gefunden.")
+            print("Keine Tabelle gefunden.")
             return [], page_date
 
+        # Alle Zeilen
         rows = table.find_all('tr')
         
         count = 0
         for row in rows:
             if count >= 5: break
             
-            cols = row.find_all('td')
-            # Eine Datenzeile hat ca. 9 Spalten. Header hat weniger oder mehr Text.
+            # WICHTIG: recursive=False verhindert, dass wir Zellen aus der inneren Tabelle mitzählen!
+            # Damit bleiben die Spalten-Indizes stabil:
+            # 0 = Rank
+            # 1 = Title Box (nested table)
+            # 2 = Gross
+            # 3 = Cume
+            # ...
+            # 8 = Days
+            cols = row.find_all('td', recursive=False)
+            
             if len(cols) < 8: continue
             
-            # Rank checken (muss eine Zahl sein)
             rank_text = cols[0].text.strip()
             if not rank_text.isdigit(): continue 
             
-            # --- DATEN EXTRAHIEREN ---
-            
-            # 1. RANK
+            # --- 1. RANG ---
             rank = rank_text
             
-            # 2. TITEL (Index 1)
-            # Im Quelltext ist der Titel in einem <strong> Tag innerhalb eines <a> Tags
-            title_col = cols[1]
-            strong_tag = title_col.find('strong')
+            # --- 2. TITEL ---
+            # Der Titel steckt in Spalte 1, aber dort in einer inneren Struktur.
+            # Wir suchen direkt nach dem <strong> Tag in dieser Spalte.
+            strong_tag = cols[1].find('strong')
             if strong_tag:
                 title = clean_text(strong_tag.text)
             else:
-                title = clean_text(title_col.text)
+                title = clean_text(cols[1].text)
             
-            # 3. DAILY GROSS (Index 2)
-            # Im Quelltext steht: <span class="moneyT">$</span>2.48
-            # Wir wollen nur die Zahl "2.48"
+            # --- 3. DAILY GROSS (Spalte 2) ---
             daily_raw = clean_text(cols[2].text)
             daily = f"${daily_raw} M"
             
-            # 4. TOTAL GROSS (Index 3)
+            # --- 4. TOTAL GROSS (Spalte 3) ---
             total_raw = clean_text(cols[3].text)
             total = f"${total_raw} M"
             
-            # 5. TAGE (Index 8 - Die letzte Spalte im Quelltext)
+            # --- 5. DAYS (Spalte 8) ---
+            # Index 8 ist die 9. Spalte (0-basiert)
             days = clean_text(cols[8].text)
 
             movies.append({
@@ -112,7 +109,7 @@ def get_data():
             })
             count += 1
             
-        print(f"Erfolgreich {len(movies)} Filme aus China geladen.")
+        print(f"Erfolg: {len(movies)} Filme geladen.")
         return movies, page_date
 
     except Exception as e:
@@ -139,8 +136,8 @@ def generate_html(movies, date_str):
             display: flex; align-items: center; justify-content: center; gap: 20px;
         }}
         
-        /* CHINESISCHE FLAGGE */
-        .flag {{ font-size: 3rem; margin-top: -10px; }}
+        /* Echte Bild-Flagge statt Emoji */
+        .flag-img {{ height: 50px; width: auto; border-radius: 4px; }}
         
         .grid-wrapper {{ width: 100%; max-width: 1200px; display:flex; flex-direction:column; gap:15px; }}
 
@@ -155,10 +152,9 @@ def generate_html(movies, date_str):
             border: 2px solid #fff; border-radius: 8px; 
             display: flex; flex-direction: column; justify-content: center; 
             padding: 0 15px; background: #0a0a0a; 
-            min-width: 0; /* Wichtig für Text-Overflow */
+            min-width: 0;
         }}
         
-        /* Rank Box (China Rot) */
         .rank-box {{ border-color: #d40028; align-items: center; }} 
         .rank-val {{ color: #d40028; font-size: 3.5rem; font-weight: 900; line-height: 1; text-shadow: 0 0 15px rgba(212, 0, 40, 0.4); }}
         
@@ -173,12 +169,10 @@ def generate_html(movies, date_str):
         .days-val {{ font-size: 2rem; font-weight: 800; }}
         .days-label {{ font-size: 0.6rem; color: #888; text-transform: uppercase; margin-top: 5px; }}
         
-        /* Daily (Neon Grün) */
         .daily-box {{ border-color: #39FF14; align-items: flex-end; }}
         .label-green {{ color: #39FF14; font-size: 0.7rem; font-weight: 800; margin-bottom: 2px; }}
         .val-big {{ font-size: 2rem; font-weight: 800; line-height: 1; }}
         
-        /* Total (Neon Blau) */
         .total-box {{ border-color: #00F0FF; align-items: flex-end; }}
         .label-blue {{ color: #00F0FF; font-size: 0.7rem; font-weight: 800; margin-bottom: 2px; }}
         
@@ -192,7 +186,7 @@ def generate_html(movies, date_str):
 </head>
 <body>
     <div class="header">
-        <span class="flag">🇨🇳</span> 
+        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Flag_of_the_People%27s_Republic_of_China.svg" class="flag-img" alt="China">
         <span>CHINA KINOCHARTS | {date_str}</span>
     </div>
     
@@ -203,7 +197,7 @@ def generate_html(movies, date_str):
         html += """
         <div style="border:1px solid red; padding:20px; text-align:center;">
             <h2 style="color:red">KEINE DATEN</h2>
-            <p>EntGroup.cn antwortet nicht oder Struktur geändert.</p>
+            <p>Konnte Daten nicht laden.</p>
         </div>
         """
     else:
@@ -237,12 +231,9 @@ def generate_html(movies, date_str):
 </html>
     """
     
-    try:
-        with open("index.html", "w", encoding="utf-8") as f:
-            f.write(html)
-        print("index.html geschrieben.")
-    except Exception as e:
-        print(f"Fehler beim Schreiben: {e}")
+    with open("index.html", "w", encoding="utf-8") as f:
+        f.write(html)
+    print("index.html geschrieben.")
 
 if __name__ == "__main__":
     data, date_val = get_data()
