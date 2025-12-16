@@ -75,13 +75,13 @@ def get_data():
             else:
                 title = clean_text(cols[1].text)
             
-            # Daily Gross
+            # Daily Gross - Jetzt mit HTML für kleines M
             daily_raw = clean_text(cols[2].text)
-            daily = f"${daily_raw} M"
+            daily = f"${daily_raw}<span class='small-unit'>M</span>"
             
-            # Total Gross
+            # Total Gross - Jetzt mit HTML für kleines M
             total_raw = clean_text(cols[3].text)
-            total = f"${total_raw} M"
+            total = f"${total_raw}<span class='small-unit'>M</span>"
             
             # Days (Spalte 8 / Index 8)
             days = clean_text(cols[8].text)
@@ -128,8 +128,8 @@ def generate_html(movies, date_str):
 
         .row-container {{ 
             display: grid; 
-            /* HIER GEÄNDERT: 0.8fr (Daily) und 1.2fr (Total) statt 1fr 1fr */
-            grid-template-columns: 80px 1.5fr 100px 0.8fr 1.2fr; 
+            /* HIER GEÄNDERT: 0.9fr und 1.1fr */
+            grid-template-columns: 80px 1.5fr 100px 0.9fr 1.1fr; 
             gap: 15px; 
             height: 100px; 
         }}
@@ -152,17 +152,23 @@ def generate_html(movies, date_str):
         }}
         
         .days-box {{ border-color: #666; align-items: center; }}
-        /* SCHRIFT VERGRÖSSERT */
         .days-val {{ font-size: 3.5rem; font-weight: 800; line-height: 1; }}
         .days-label {{ font-size: 0.6rem; color: #888; text-transform: uppercase; margin-top: 5px; }}
         
         .daily-box {{ border-color: #39FF14; align-items: flex-end; }}
         .label-green {{ color: #39FF14; font-size: 0.7rem; font-weight: 800; margin-bottom: 2px; }}
-        /* SCHRIFT VERGRÖSSERT */
         .val-big {{ font-size: 2.8rem; font-weight: 800; line-height: 1; }}
         
         .total-box {{ border-color: #00F0FF; align-items: flex-end; }}
         .label-blue {{ color: #00F0FF; font-size: 0.7rem; font-weight: 800; margin-bottom: 2px; }}
+        
+        /* Das kleine M */
+        .small-unit {{
+            font-size: 0.6em; /* Macht das M kleiner (60% der Zahlengröße) */
+            margin-left: 2px;
+            font-weight: 700;
+            opacity: 0.9;
+        }}
         
         @media (max-width: 800px) {{
             .row-container {{ grid-template-columns: 60px 1fr; height: auto; padding-bottom: 20px; border-bottom:1px solid #333; }}
