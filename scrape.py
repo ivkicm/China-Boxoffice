@@ -128,7 +128,8 @@ def generate_html(movies, date_str):
 
         .row-container {{ 
             display: grid; 
-            grid-template-columns: 80px 1.5fr 100px 1fr 1fr; 
+            /* HIER GEÄNDERT: 0.8fr (Daily) und 1.2fr (Total) statt 1fr 1fr */
+            grid-template-columns: 80px 1.5fr 100px 0.8fr 1.2fr; 
             gap: 15px; 
             height: 100px; 
         }}
