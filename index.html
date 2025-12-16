@@ -16,8 +16,8 @@
             display: flex; align-items: center; justify-content: center; gap: 20px;
         }
         
-        /* CHINESISCHE FLAGGE */
-        .flag { font-size: 3rem; margin-top: -10px; }
+        /* Echte Bild-Flagge statt Emoji */
+        .flag-img { height: 50px; width: auto; border-radius: 4px; }
         
         .grid-wrapper { width: 100%; max-width: 1200px; display:flex; flex-direction:column; gap:15px; }
 
@@ -32,10 +32,9 @@
             border: 2px solid #fff; border-radius: 8px; 
             display: flex; flex-direction: column; justify-content: center; 
             padding: 0 15px; background: #0a0a0a; 
-            min-width: 0; /* Wichtig für Text-Overflow */
+            min-width: 0;
         }
         
-        /* Rank Box (China Rot) */
         .rank-box { border-color: #d40028; align-items: center; } 
         .rank-val { color: #d40028; font-size: 3.5rem; font-weight: 900; line-height: 1; text-shadow: 0 0 15px rgba(212, 0, 40, 0.4); }
         
@@ -50,12 +49,10 @@
         .days-val { font-size: 2rem; font-weight: 800; }
         .days-label { font-size: 0.6rem; color: #888; text-transform: uppercase; margin-top: 5px; }
         
-        /* Daily (Neon Grün) */
         .daily-box { border-color: #39FF14; align-items: flex-end; }
         .label-green { color: #39FF14; font-size: 0.7rem; font-weight: 800; margin-bottom: 2px; }
         .val-big { font-size: 2rem; font-weight: 800; line-height: 1; }
         
-        /* Total (Neon Blau) */
         .total-box { border-color: #00F0FF; align-items: flex-end; }
         .label-blue { color: #00F0FF; font-size: 0.7rem; font-weight: 800; margin-bottom: 2px; }
         
@@ -69,7 +66,7 @@
 </head>
 <body>
     <div class="header">
-        <span class="flag">🇨🇳</span> 
+        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Flag_of_the_People%27s_Republic_of_China.svg" class="flag-img" alt="China">
         <span>CHINA KINOCHARTS | 15.12.2025</span>
     </div>
     
@@ -82,16 +79,16 @@
                     <div class="movie-title">Zootopia 2</div>
                 </div>
                 
-                <div class="box days-box"><div class="days-val">225306</div><div class="days-label">TAGE</div></div>
+                <div class="box days-box"><div class="days-val">20</div><div class="days-label">TAGE</div></div>
                 
                 <div class="box daily-box">
                     <div class="label-green">UMSATZ HEUTE</div>
-                    <div class="val-big">$ M</div>
+                    <div class="val-big">$2.48 M</div>
                 </div>
                 
                 <div class="box total-box">
                     <div class="label-blue">GESAMT</div>
-                    <div class="val-big">$Zootopia 2 M</div>
+                    <div class="val-big">$507.15 M</div>
                 </div>
             </div>
             
@@ -102,16 +99,16 @@
                     <div class="movie-title">Gezhi Town</div>
                 </div>
                 
-                <div class="box days-box"><div class="days-val">194423</div><div class="days-label">TAGE</div></div>
+                <div class="box days-box"><div class="days-val">10</div><div class="days-label">TAGE</div></div>
                 
                 <div class="box daily-box">
                     <div class="label-green">UMSATZ HEUTE</div>
-                    <div class="val-big">$Gezhi Town M</div>
+                    <div class="val-big">$1.02 M</div>
                 </div>
                 
                 <div class="box total-box">
                     <div class="label-blue">GESAMT</div>
-                    <div class="val-big">$1.02 M</div>
+                    <div class="val-big">$44.36 M</div>
                 </div>
             </div>
             
@@ -122,16 +119,16 @@
                     <div class="movie-title">Under Current</div>
                 </div>
                 
-                <div class="box days-box"><div class="days-val">40762</div><div class="days-label">TAGE</div></div>
+                <div class="box days-box"><div class="days-val">10</div><div class="days-label">TAGE</div></div>
                 
                 <div class="box daily-box">
                     <div class="label-green">UMSATZ HEUTE</div>
-                    <div class="val-big">$Under Current M</div>
+                    <div class="val-big">$0.20 M</div>
                 </div>
                 
                 <div class="box total-box">
                     <div class="label-blue">GESAMT</div>
-                    <div class="val-big">$0.20 M</div>
+                    <div class="val-big">$3.31 M</div>
                 </div>
             </div>
             
@@ -142,16 +139,16 @@
                     <div class="movie-title">Now You See Me: Now You Don't</div>
                 </div>
                 
-                <div class="box days-box"><div class="days-val">17191</div><div class="days-label">TAGE</div></div>
+                <div class="box days-box"><div class="days-val">32</div><div class="days-label">TAGE</div></div>
                 
                 <div class="box daily-box">
                     <div class="label-green">UMSATZ HEUTE</div>
-                    <div class="val-big">$Now You See Me: Now You Don't M</div>
+                    <div class="val-big">$0.10 M</div>
                 </div>
                 
                 <div class="box total-box">
                     <div class="label-blue">GESAMT</div>
-                    <div class="val-big">$0.10 M</div>
+                    <div class="val-big">$40.17 M</div>
                 </div>
             </div>
             
@@ -162,16 +159,16 @@
                     <div class="movie-title">Mountains May Depart</div>
                 </div>
                 
-                <div class="box days-box"><div class="days-val">10399</div><div class="days-label">TAGE</div></div>
+                <div class="box days-box"><div class="days-val">3700</div><div class="days-label">TAGE</div></div>
                 
                 <div class="box daily-box">
                     <div class="label-green">UMSATZ HEUTE</div>
-                    <div class="val-big">$Mountains May Depart M</div>
+                    <div class="val-big">$0.05 M</div>
                 </div>
                 
                 <div class="box total-box">
                     <div class="label-blue">GESAMT</div>
-                    <div class="val-big">$0.05 M</div>
+                    <div class="val-big">$5.06 M</div>
                 </div>
             </div>
             
