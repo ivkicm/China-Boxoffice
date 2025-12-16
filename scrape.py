@@ -18,7 +18,6 @@ def get_session():
 
 def clean_text(text):
     if not text: return ""
-    # Entferne Dollarzeichen und überflüssigen Whitespace
     text = text.replace('$', '').replace('\n', ' ').replace('\r', ' ')
     return " ".join(text.split())
 
@@ -38,7 +37,6 @@ def get_data():
         response.encoding = response.apparent_encoding
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        # Datum auslesen
         try:
             date_input = soup.find('input', {'id': 'txtdate'})
             if date_input and date_input.get('value'):
@@ -48,27 +46,18 @@ def get_data():
         except:
             pass
 
-        # Tabelle suchen
         table = soup.find('table', {'class': 'person'})
         if not table:
             print("Keine Tabelle gefunden.")
             return [], page_date
 
-        # Alle Zeilen
         rows = table.find_all('tr')
         
         count = 0
         for row in rows:
             if count >= 5: break
             
-            # WICHTIG: recursive=False verhindert, dass wir Zellen aus der inneren Tabelle mitzählen!
-            # Damit bleiben die Spalten-Indizes stabil:
-            # 0 = Rank
-            # 1 = Title Box (nested table)
-            # 2 = Gross
-            # 3 = Cume
-            # ...
-            # 8 = Days
+            # WICHTIG: recursive=False für stabile Spaltenzuordnung
             cols = row.find_all('td', recursive=False)
             
             if len(cols) < 8: continue
@@ -76,28 +65,25 @@ def get_data():
             rank_text = cols[0].text.strip()
             if not rank_text.isdigit(): continue 
             
-            # --- 1. RANG ---
+            # --- DATEN ---
             rank = rank_text
             
-            # --- 2. TITEL ---
-            # Der Titel steckt in Spalte 1, aber dort in einer inneren Struktur.
-            # Wir suchen direkt nach dem <strong> Tag in dieser Spalte.
+            # Titel
             strong_tag = cols[1].find('strong')
             if strong_tag:
                 title = clean_text(strong_tag.text)
             else:
                 title = clean_text(cols[1].text)
             
-            # --- 3. DAILY GROSS (Spalte 2) ---
+            # Daily Gross
             daily_raw = clean_text(cols[2].text)
             daily = f"${daily_raw} M"
             
-            # --- 4. TOTAL GROSS (Spalte 3) ---
+            # Total Gross
             total_raw = clean_text(cols[3].text)
             total = f"${total_raw} M"
             
-            # --- 5. DAYS (Spalte 8) ---
-            # Index 8 ist die 9. Spalte (0-basiert)
+            # Days (Spalte 8 / Index 8)
             days = clean_text(cols[8].text)
 
             movies.append({
@@ -136,7 +122,6 @@ def generate_html(movies, date_str):
             display: flex; align-items: center; justify-content: center; gap: 20px;
         }}
         
-        /* Echte Bild-Flagge statt Emoji */
         .flag-img {{ height: 50px; width: auto; border-radius: 4px; }}
         
         .grid-wrapper {{ width: 100%; max-width: 1200px; display:flex; flex-direction:column; gap:15px; }}
@@ -166,12 +151,14 @@ def generate_html(movies, date_str):
         }}
         
         .days-box {{ border-color: #666; align-items: center; }}
-        .days-val {{ font-size: 2rem; font-weight: 800; }}
+        /* SCHRIFT VERGRÖSSERT */
+        .days-val {{ font-size: 3.5rem; font-weight: 800; line-height: 1; }}
         .days-label {{ font-size: 0.6rem; color: #888; text-transform: uppercase; margin-top: 5px; }}
         
         .daily-box {{ border-color: #39FF14; align-items: flex-end; }}
         .label-green {{ color: #39FF14; font-size: 0.7rem; font-weight: 800; margin-bottom: 2px; }}
-        .val-big {{ font-size: 2rem; font-weight: 800; line-height: 1; }}
+        /* SCHRIFT VERGRÖSSERT */
+        .val-big {{ font-size: 2.8rem; font-weight: 800; line-height: 1; }}
         
         .total-box {{ border-color: #00F0FF; align-items: flex-end; }}
         .label-blue {{ color: #00F0FF; font-size: 0.7rem; font-weight: 800; margin-bottom: 2px; }}
@@ -226,14 +213,17 @@ def generate_html(movies, date_str):
 
     html += """
     </div>
-    <div style="margin-top:20px; font-size:0.7rem; color:#444;">Quelle: EntGroup China</div>
+    <div style="margin-top:20px; font-size:0.7rem; color:#444; text-align:center;">Quelle: EntGroup China</div>
 </body>
 </html>
     """
     
-    with open("index.html", "w", encoding="utf-8") as f:
-        f.write(html)
-    print("index.html geschrieben.")
+    try:
+        with open("index.html", "w", encoding="utf-8") as f:
+            f.write(html)
+        print("index.html geschrieben.")
+    except Exception as e:
+        print(f"Fehler beim Schreiben: {e}")
 
 if __name__ == "__main__":
     data, date_val = get_data()
