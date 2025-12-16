@@ -22,8 +22,8 @@
 
         .row-container { 
             display: grid; 
-            /* HIER GEÄNDERT: 0.8fr (Daily) und 1.2fr (Total) statt 1fr 1fr */
-            grid-template-columns: 80px 1.5fr 100px 0.8fr 1.2fr; 
+            /* HIER GEÄNDERT: 0.9fr und 1.1fr */
+            grid-template-columns: 80px 1.5fr 100px 0.9fr 1.1fr; 
             gap: 15px; 
             height: 100px; 
         }
@@ -46,17 +46,23 @@
         }
         
         .days-box { border-color: #666; align-items: center; }
-        /* SCHRIFT VERGRÖSSERT */
         .days-val { font-size: 3.5rem; font-weight: 800; line-height: 1; }
         .days-label { font-size: 0.6rem; color: #888; text-transform: uppercase; margin-top: 5px; }
         
         .daily-box { border-color: #39FF14; align-items: flex-end; }
         .label-green { color: #39FF14; font-size: 0.7rem; font-weight: 800; margin-bottom: 2px; }
-        /* SCHRIFT VERGRÖSSERT */
         .val-big { font-size: 2.8rem; font-weight: 800; line-height: 1; }
         
         .total-box { border-color: #00F0FF; align-items: flex-end; }
         .label-blue { color: #00F0FF; font-size: 0.7rem; font-weight: 800; margin-bottom: 2px; }
+        
+        /* Das kleine M */
+        .small-unit {
+            font-size: 0.6em; /* Macht das M kleiner (60% der Zahlengröße) */
+            margin-left: 2px;
+            font-weight: 700;
+            opacity: 0.9;
+        }
         
         @media (max-width: 800px) {
             .row-container { grid-template-columns: 60px 1fr; height: auto; padding-bottom: 20px; border-bottom:1px solid #333; }
@@ -85,12 +91,12 @@
                 
                 <div class="box daily-box">
                     <div class="label-green">UMSATZ HEUTE</div>
-                    <div class="val-big">$2.48 M</div>
+                    <div class="val-big">$2.48<span class='small-unit'>M</span></div>
                 </div>
                 
                 <div class="box total-box">
                     <div class="label-blue">GESAMT</div>
-                    <div class="val-big">$507.15 M</div>
+                    <div class="val-big">$507.15<span class='small-unit'>M</span></div>
                 </div>
             </div>
             
@@ -105,12 +111,12 @@
                 
                 <div class="box daily-box">
                     <div class="label-green">UMSATZ HEUTE</div>
-                    <div class="val-big">$1.02 M</div>
+                    <div class="val-big">$1.02<span class='small-unit'>M</span></div>
                 </div>
                 
                 <div class="box total-box">
                     <div class="label-blue">GESAMT</div>
-                    <div class="val-big">$44.36 M</div>
+                    <div class="val-big">$44.36<span class='small-unit'>M</span></div>
                 </div>
             </div>
             
@@ -125,12 +131,12 @@
                 
                 <div class="box daily-box">
                     <div class="label-green">UMSATZ HEUTE</div>
-                    <div class="val-big">$0.20 M</div>
+                    <div class="val-big">$0.20<span class='small-unit'>M</span></div>
                 </div>
                 
                 <div class="box total-box">
                     <div class="label-blue">GESAMT</div>
-                    <div class="val-big">$3.31 M</div>
+                    <div class="val-big">$3.31<span class='small-unit'>M</span></div>
                 </div>
             </div>
             
@@ -145,12 +151,12 @@
                 
                 <div class="box daily-box">
                     <div class="label-green">UMSATZ HEUTE</div>
-                    <div class="val-big">$0.10 M</div>
+                    <div class="val-big">$0.10<span class='small-unit'>M</span></div>
                 </div>
                 
                 <div class="box total-box">
                     <div class="label-blue">GESAMT</div>
-                    <div class="val-big">$40.17 M</div>
+                    <div class="val-big">$40.17<span class='small-unit'>M</span></div>
                 </div>
             </div>
             
@@ -165,12 +171,12 @@
                 
                 <div class="box daily-box">
                     <div class="label-green">UMSATZ HEUTE</div>
-                    <div class="val-big">$0.05 M</div>
+                    <div class="val-big">$0.05<span class='small-unit'>M</span></div>
                 </div>
                 
                 <div class="box total-box">
                     <div class="label-blue">GESAMT</div>
-                    <div class="val-big">$5.06 M</div>
+                    <div class="val-big">$5.06<span class='small-unit'>M</span></div>
                 </div>
             </div>
             
