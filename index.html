@@ -13,7 +13,11 @@
             font-size: 2.5rem; font-weight: 900; text-transform: uppercase; 
             margin-bottom: 30px; letter-spacing: 2px; text-align: center; 
             border-bottom: 2px solid #333; padding-bottom: 10px; width: 100%; max-width: 1200px; 
+            display: flex; align-items: center; justify-content: center; gap: 20px;
         }
+        
+        /* CHINESISCHE FLAGGE */
+        .flag { font-size: 3rem; margin-top: -10px; }
         
         .grid-wrapper { width: 100%; max-width: 1200px; display:flex; flex-direction:column; gap:15px; }
 
@@ -31,7 +35,8 @@
             min-width: 0; /* Wichtig für Text-Overflow */
         }
         
-        .rank-box { border-color: #d40028; align-items: center; } /* Rot für China */
+        /* Rank Box (China Rot) */
+        .rank-box { border-color: #d40028; align-items: center; } 
         .rank-val { color: #d40028; font-size: 3.5rem; font-weight: 900; line-height: 1; text-shadow: 0 0 15px rgba(212, 0, 40, 0.4); }
         
         .title-box { border-color: #ffffff; justify-content: center; }
@@ -63,7 +68,11 @@
     </style>
 </head>
 <body>
-    <div class="header">CHINA KINOCHARTS | 16.12.2025</div>
+    <div class="header">
+        <span class="flag">🇨🇳</span> 
+        <span>CHINA KINOCHARTS | 15.12.2025</span>
+    </div>
+    
     <div class="grid-wrapper">
     
             <div class="row-container">
