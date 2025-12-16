@@ -1,0 +1,173 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>China Box Office</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #000000; color: #ffffff; font-family: 'JetBrains Mono', monospace; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        .header { 
+            font-size: 2.5rem; font-weight: 900; text-transform: uppercase; 
+            margin-bottom: 30px; letter-spacing: 2px; text-align: center; 
+            border-bottom: 2px solid #333; padding-bottom: 10px; width: 100%; max-width: 1200px; 
+        }
+        
+        .grid-wrapper { width: 100%; max-width: 1200px; display:flex; flex-direction:column; gap:15px; }
+
+        .row-container { 
+            display: grid; 
+            grid-template-columns: 80px 1.5fr 100px 1fr 1fr; 
+            gap: 15px; 
+            height: 100px; 
+        }
+        
+        .box { 
+            border: 2px solid #fff; border-radius: 8px; 
+            display: flex; flex-direction: column; justify-content: center; 
+            padding: 0 15px; background: #0a0a0a; 
+            min-width: 0; /* Wichtig für Text-Overflow */
+        }
+        
+        .rank-box { border-color: #d40028; align-items: center; } /* Rot für China */
+        .rank-val { color: #d40028; font-size: 3.5rem; font-weight: 900; line-height: 1; text-shadow: 0 0 15px rgba(212, 0, 40, 0.4); }
+        
+        .title-box { border-color: #ffffff; justify-content: center; }
+        .movie-title { 
+            font-size: 1.5rem; font-weight: 800; text-transform: uppercase; 
+            line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+            display: block; width: 100%;
+        }
+        
+        .days-box { border-color: #666; align-items: center; }
+        .days-val { font-size: 2rem; font-weight: 800; }
+        .days-label { font-size: 0.6rem; color: #888; text-transform: uppercase; margin-top: 5px; }
+        
+        /* Daily (Neon Grün) */
+        .daily-box { border-color: #39FF14; align-items: flex-end; }
+        .label-green { color: #39FF14; font-size: 0.7rem; font-weight: 800; margin-bottom: 2px; }
+        .val-big { font-size: 2rem; font-weight: 800; line-height: 1; }
+        
+        /* Total (Neon Blau) */
+        .total-box { border-color: #00F0FF; align-items: flex-end; }
+        .label-blue { color: #00F0FF; font-size: 0.7rem; font-weight: 800; margin-bottom: 2px; }
+        
+        @media (max-width: 800px) {
+            .row-container { grid-template-columns: 60px 1fr; height: auto; padding-bottom: 20px; border-bottom:1px solid #333; }
+            .rank-box { grid-row: 1 / 3; height: 100%; }
+            .title-box { height: 60px; }
+            .days-box, .daily-box, .total-box { height: 70px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">CHINA KINOCHARTS | 16.12.2025</div>
+    <div class="grid-wrapper">
+    
+            <div class="row-container">
+                <div class="box rank-box"><div class="rank-val">1</div></div>
+                
+                <div class="box title-box" title="Zootopia 2">
+                    <div class="movie-title">Zootopia 2</div>
+                </div>
+                
+                <div class="box days-box"><div class="days-val">225306</div><div class="days-label">TAGE</div></div>
+                
+                <div class="box daily-box">
+                    <div class="label-green">UMSATZ HEUTE</div>
+                    <div class="val-big">$ M</div>
+                </div>
+                
+                <div class="box total-box">
+                    <div class="label-blue">GESAMT</div>
+                    <div class="val-big">$Zootopia 2 M</div>
+                </div>
+            </div>
+            
+            <div class="row-container">
+                <div class="box rank-box"><div class="rank-val">2</div></div>
+                
+                <div class="box title-box" title="Gezhi Town">
+                    <div class="movie-title">Gezhi Town</div>
+                </div>
+                
+                <div class="box days-box"><div class="days-val">194423</div><div class="days-label">TAGE</div></div>
+                
+                <div class="box daily-box">
+                    <div class="label-green">UMSATZ HEUTE</div>
+                    <div class="val-big">$Gezhi Town M</div>
+                </div>
+                
+                <div class="box total-box">
+                    <div class="label-blue">GESAMT</div>
+                    <div class="val-big">$1.02 M</div>
+                </div>
+            </div>
+            
+            <div class="row-container">
+                <div class="box rank-box"><div class="rank-val">3</div></div>
+                
+                <div class="box title-box" title="Under Current">
+                    <div class="movie-title">Under Current</div>
+                </div>
+                
+                <div class="box days-box"><div class="days-val">40762</div><div class="days-label">TAGE</div></div>
+                
+                <div class="box daily-box">
+                    <div class="label-green">UMSATZ HEUTE</div>
+                    <div class="val-big">$Under Current M</div>
+                </div>
+                
+                <div class="box total-box">
+                    <div class="label-blue">GESAMT</div>
+                    <div class="val-big">$0.20 M</div>
+                </div>
+            </div>
+            
+            <div class="row-container">
+                <div class="box rank-box"><div class="rank-val">4</div></div>
+                
+                <div class="box title-box" title="Now You See Me: Now You Don't">
+                    <div class="movie-title">Now You See Me: Now You Don't</div>
+                </div>
+                
+                <div class="box days-box"><div class="days-val">17191</div><div class="days-label">TAGE</div></div>
+                
+                <div class="box daily-box">
+                    <div class="label-green">UMSATZ HEUTE</div>
+                    <div class="val-big">$Now You See Me: Now You Don't M</div>
+                </div>
+                
+                <div class="box total-box">
+                    <div class="label-blue">GESAMT</div>
+                    <div class="val-big">$0.10 M</div>
+                </div>
+            </div>
+            
+            <div class="row-container">
+                <div class="box rank-box"><div class="rank-val">5</div></div>
+                
+                <div class="box title-box" title="Mountains May Depart">
+                    <div class="movie-title">Mountains May Depart</div>
+                </div>
+                
+                <div class="box days-box"><div class="days-val">10399</div><div class="days-label">TAGE</div></div>
+                
+                <div class="box daily-box">
+                    <div class="label-green">UMSATZ HEUTE</div>
+                    <div class="val-big">$Mountains May Depart M</div>
+                </div>
+                
+                <div class="box total-box">
+                    <div class="label-blue">GESAMT</div>
+                    <div class="val-big">$0.05 M</div>
+                </div>
+            </div>
+            
+    </div>
+    <div style="margin-top:20px; font-size:0.7rem; color:#444;">Quelle: EntGroup China</div>
+</body>
+</html>
+    
