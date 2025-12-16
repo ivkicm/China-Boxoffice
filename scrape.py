@@ -11,7 +11,7 @@ URL = "http://english.entgroup.cn/boxoffice/cn/daily/"
 def get_session():
     """Erstellt eine robuste Browser-Session."""
     session = requests.Session()
-    # China-Verbindungen können wackelig sein, daher mehr Retries
+    # China-Verbindungen können wackelig sein
     retry = Retry(connect=5, read=5, backoff_factor=1)
     adapter = HTTPAdapter(max_retries=retry)
     session.mount('http://', adapter)
@@ -19,9 +19,9 @@ def get_session():
     return session
 
 def clean_text(text):
-    """Entfernt Zeilenumbrüche und doppelte Leerzeichen."""
+    """Entfernt Zeilenumbrüche, Dollarzeichen und doppelte Leerzeichen."""
     if not text: return ""
-    text = text.replace('\n', ' ').replace('\r', ' ')
+    text = text.replace('$', '').replace('\n', ' ').replace('\r', ' ')
     return " ".join(text.split())
 
 def get_data():
@@ -32,32 +32,34 @@ def get_data():
     
     session = get_session()
     movies = []
-    page_date = datetime.now().strftime("%d.%m.%Y") # Default: Heute
+    
+    # Standard-Datum (Heute), falls wir es nicht von der Seite lesen können
+    page_date = datetime.now().strftime("%d.%m.%Y")
 
     print(f"Lade Daten von {URL}...")
     
     try:
         response = session.get(URL, headers=headers, timeout=60)
-        # EntGroup hat manchmal Encoding Probleme, wir zwingen UTF-8 oder Auto
-        response.encoding = response.apparent_encoding 
+        response.encoding = response.apparent_encoding # Encoding fixen
         
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        # 1. Versuchen das Datum von der Seite zu lesen (input value="12/15/2025")
+        # 1. Datum auslesen (Input Feld)
         try:
-            date_input = soup.find('input', {'id': 'txtDate'})
+            date_input = soup.find('input', {'id': 'txtdate'})
             if date_input and date_input.get('value'):
-                raw_date = date_input.get('value') # Format MM/DD/YYYY
+                # Format: "12 /15 /2025" -> bereinigen zu "12/15/2025"
+                raw_date = date_input.get('value').replace(' ', '')
                 dt = datetime.strptime(raw_date, '%m/%d/%Y')
                 page_date = dt.strftime("%d.%m.%Y")
         except:
-            pass # Fallback auf Heute
+            pass
 
-        # 2. Tabelle suchen (meistens id="table1" oder einfach die Haupttabelle)
-        # EntGroup nutzt oft IDs, aber wir suchen generisch nach der Tabelle mit den BoxOffice Daten
-        table = soup.find('table')
+        # 2. Tabelle parsen
+        # Wir suchen die Tabelle mit class="person" (aus deinem Quelltext)
+        table = soup.find('table', {'class': 'person'})
         if not table:
-            print("Keine Tabelle gefunden.")
+            print("Keine Tabelle 'person' gefunden.")
             return [], page_date
 
         rows = table.find_all('tr')
@@ -67,33 +69,39 @@ def get_data():
             if count >= 5: break
             
             cols = row.find_all('td')
-            # Die Tabelle hat viele Spalten: Rank, Title, Gross(M), Cume(M), ..., Days
-            # Wir brauchen ca. 9 Spalten
+            # Eine Datenzeile hat ca. 9 Spalten. Header hat weniger oder mehr Text.
             if len(cols) < 8: continue
             
-            # Rank checken
+            # Rank checken (muss eine Zahl sein)
             rank_text = cols[0].text.strip()
-            if not rank_text.isdigit(): continue # Header überspringen
+            if not rank_text.isdigit(): continue 
             
             # --- DATEN EXTRAHIEREN ---
             
-            # Spalte 1: Rank
+            # 1. RANK
             rank = rank_text
             
-            # Spalte 2: Title (steht oft neben einem Bild)
-            # Wir holen nur den Text, bereinigt
-            title = clean_text(cols[1].text)
+            # 2. TITEL (Index 1)
+            # Im Quelltext ist der Titel in einem <strong> Tag innerhalb eines <a> Tags
+            title_col = cols[1]
+            strong_tag = title_col.find('strong')
+            if strong_tag:
+                title = clean_text(strong_tag.text)
+            else:
+                title = clean_text(title_col.text)
             
-            # Spalte 3: Daily Gross (M) -> z.B. "$ 2.48"
-            daily_raw = cols[2].text.strip().replace('$', '')
+            # 3. DAILY GROSS (Index 2)
+            # Im Quelltext steht: <span class="moneyT">$</span>2.48
+            # Wir wollen nur die Zahl "2.48"
+            daily_raw = clean_text(cols[2].text)
             daily = f"${daily_raw} M"
             
-            # Spalte 4: Total Gross (M) -> z.B. "$ 507.15"
-            total_raw = cols[3].text.strip().replace('$', '')
+            # 4. TOTAL GROSS (Index 3)
+            total_raw = clean_text(cols[3].text)
             total = f"${total_raw} M"
             
-            # Spalte 9 (Index 8): Days -> z.B. "20"
-            days = cols[8].text.strip()
+            # 5. TAGE (Index 8 - Die letzte Spalte im Quelltext)
+            days = clean_text(cols[8].text)
 
             movies.append({
                 'rank': rank,
@@ -128,7 +136,11 @@ def generate_html(movies, date_str):
             font-size: 2.5rem; font-weight: 900; text-transform: uppercase; 
             margin-bottom: 30px; letter-spacing: 2px; text-align: center; 
             border-bottom: 2px solid #333; padding-bottom: 10px; width: 100%; max-width: 1200px; 
+            display: flex; align-items: center; justify-content: center; gap: 20px;
         }}
+        
+        /* CHINESISCHE FLAGGE */
+        .flag {{ font-size: 3rem; margin-top: -10px; }}
         
         .grid-wrapper {{ width: 100%; max-width: 1200px; display:flex; flex-direction:column; gap:15px; }}
 
@@ -146,7 +158,8 @@ def generate_html(movies, date_str):
             min-width: 0; /* Wichtig für Text-Overflow */
         }}
         
-        .rank-box {{ border-color: #d40028; align-items: center; }} /* Rot für China */
+        /* Rank Box (China Rot) */
+        .rank-box {{ border-color: #d40028; align-items: center; }} 
         .rank-val {{ color: #d40028; font-size: 3.5rem; font-weight: 900; line-height: 1; text-shadow: 0 0 15px rgba(212, 0, 40, 0.4); }}
         
         .title-box {{ border-color: #ffffff; justify-content: center; }}
@@ -178,7 +191,11 @@ def generate_html(movies, date_str):
     </style>
 </head>
 <body>
-    <div class="header">CHINA KINOCHARTS | {date_str}</div>
+    <div class="header">
+        <span class="flag">🇨🇳</span> 
+        <span>CHINA KINOCHARTS | {date_str}</span>
+    </div>
+    
     <div class="grid-wrapper">
     """
 
